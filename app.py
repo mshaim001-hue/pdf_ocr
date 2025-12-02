@@ -130,6 +130,71 @@ def upload_file():
                     logger.warning(f"Не удалось удалить временный файл {path}: {e}")
             threading.Thread(target=delayed_delete, args=(json_path,), daemon=True).start()
 
+@app.route('/process', methods=['POST'])
+def process_file():
+    """API endpoint для ikap: принимает PDF и возвращает JSON напрямую"""
+    pdf_paths = []
+    
+    try:
+        if 'files' not in request.files and 'file' not in request.files:
+            return jsonify({'error': 'Файлы не найдены'}), 400
+        
+        # Получаем список файлов (ikap отправляет как 'files')
+        files = request.files.getlist('files') or request.files.getlist('file')
+        
+        if not files or all(f.filename == '' for f in files):
+            return jsonify({'error': 'Файлы не выбраны'}), 400
+        
+        # Фильтруем валидные PDF файлы
+        valid_files = []
+        for file in files:
+            if file.filename and allowed_file(file.filename):
+                valid_files.append(file)
+        
+        if not valid_files:
+            return jsonify({'error': 'Не найдено валидных PDF файлов'}), 400
+        
+        # Сохраняем все файлы
+        for file in valid_files:
+            filename = secure_filename(file.filename)
+            pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], f"{uuid.uuid4().hex[:8]}_{filename}")
+            file.save(pdf_path)
+            pdf_paths.append(pdf_path)
+            logger.info(f"Файл сохранен: {pdf_path}")
+        
+        # Обрабатываем все PDF файлы и получаем JSON
+        json_path = process_multiple_pdfs_to_json(pdf_paths)
+        logger.info(f"JSON файл создан: {json_path}")
+        
+        # Читаем JSON и возвращаем напрямую
+        with open(json_path, 'r', encoding='utf-8') as f:
+            json_data = json.load(f)
+        
+        # Удаляем JSON файл сразу (он уже в памяти)
+        try:
+            if os.path.exists(json_path):
+                os.remove(json_path)
+                logger.info(f"Временный JSON файл удален: {json_path}")
+        except Exception as e:
+            logger.warning(f"Не удалось удалить временный файл {json_path}: {e}")
+        
+        return jsonify(json_data), 200
+    
+    except Exception as e:
+        error_msg = str(e)
+        error_trace = traceback.format_exc()
+        logger.error(f"Ошибка при обработке файлов: {error_msg}\n{error_trace}")
+        return jsonify({'error': f'Ошибка при обработке файлов: {error_msg}'}), 500
+    finally:
+        # Удаляем временные PDF файлы
+        for pdf_path in pdf_paths:
+            if pdf_path and os.path.exists(pdf_path):
+                try:
+                    os.remove(pdf_path)
+                    logger.info(f"Временный PDF файл удален: {pdf_path}")
+                except Exception as e:
+                    logger.warning(f"Не удалось удалить временный файл {pdf_path}: {e}")
+
 def process_multiple_pdfs_to_json(pdf_paths):
     """Обрабатывает несколько PDF файлов и объединяет результаты в один JSON"""
     all_pages = []
