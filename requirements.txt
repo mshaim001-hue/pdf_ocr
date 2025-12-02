@@ -2,9 +2,9 @@ Flask==3.0.0
 Werkzeug==3.0.1
 gunicorn==21.2.0
 
-# OCR стек (EasyOCR + torch/torchvision версий, поддерживаемых Render'ом)
-torch==1.13.1
-torchvision==0.14.1
+# OCR стек (EasyOCR + совместимый с Render torch/torchvision)
+torch==2.0.0
+torchvision==0.15.1
 easyocr==1.6.2
 
 # PDF и изображение
