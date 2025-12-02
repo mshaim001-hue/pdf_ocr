@@ -29,9 +29,9 @@ COPY . /app
 ENV PORT=8080
 
 # Команда запуска — gunicorn с увеличенным timeout для инициализации EasyOCR
-# --timeout 300: 5 минут на обработку запроса (включая первую инициализацию EasyOCR)
+# --timeout 600: 10 минут на обработку запроса (включая первую инициализацию EasyOCR и обработку больших файлов)
 # --graceful-timeout 30: время на graceful shutdown
-CMD exec gunicorn --bind 0.0.0.0:${PORT} --workers 1 --threads 4 --timeout 300 --graceful-timeout 30 app:app
+CMD exec gunicorn --bind 0.0.0.0:${PORT} --workers 1 --threads 4 --timeout 600 --graceful-timeout 30 app:app
 
 
 

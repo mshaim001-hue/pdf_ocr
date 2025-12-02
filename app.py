@@ -155,16 +155,24 @@ def process_file():
             return jsonify({'error': 'Не найдено валидных PDF файлов'}), 400
         
         # Сохраняем все файлы
+        total_size = 0
         for file in valid_files:
             filename = secure_filename(file.filename)
             pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], f"{uuid.uuid4().hex[:8]}_{filename}")
             file.save(pdf_path)
+            file_size = os.path.getsize(pdf_path)
+            total_size += file_size
             pdf_paths.append(pdf_path)
-            logger.info(f"Файл сохранен: {pdf_path}")
+            logger.info(f"Файл сохранен: {filename} ({file_size / 1024 / 1024:.2f} MB)")
+        
+        logger.info(f"📄 Начинаем обработку {len(valid_files)} PDF файл(ов), общий размер: {total_size / 1024 / 1024:.2f} MB")
         
         # Обрабатываем все PDF файлы и получаем JSON
+        import time
+        start_time = time.time()
         json_path = process_multiple_pdfs_to_json(pdf_paths)
-        logger.info(f"JSON файл создан: {json_path}")
+        elapsed_time = time.time() - start_time
+        logger.info(f"✅ JSON файл создан за {elapsed_time:.2f} секунд: {json_path}")
         
         # Читаем JSON и возвращаем напрямую
         with open(json_path, 'r', encoding='utf-8') as f:
