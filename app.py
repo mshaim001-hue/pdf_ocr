@@ -523,7 +523,7 @@ def create_structured_tables(df, y_tolerance=20, x_tolerance=30):
                 else:
                     table_df = pd.DataFrame(table_rows, columns=headers)
             else:
-                table_df = pd.DataFrame(table_rows, columns	headers)
+                table_df = pd.DataFrame(table_rows, columns=headers)
             
             structured[page_num] = table_df
         else:
