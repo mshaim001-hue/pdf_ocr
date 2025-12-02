@@ -5,11 +5,10 @@ gunicorn==21.2.0
 # OCR стек (EasyOCR + совместимый с Render torch/torchvision)
 torch==2.0.0
 torchvision==0.15.1
-easyocr==1.6.2
+easyocr==1.7.1
 
 # PDF и изображение
 PyMuPDF==1.23.8
-opencv-python==4.8.1.78
 Pillow==9.5.0
 numpy==1.26.4
 
