@@ -297,7 +297,9 @@ def process_pdf_to_dataframe(pdf_path):
             elif pix.n == 1:
                 img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
             
-            result = reader.readtext(img)
+            # Распознаем текст с координатами
+            ocr_reader = get_reader()
+            result = ocr_reader.readtext(img)
             
             for (bbox, text, prob) in result:
                 x0, y0 = bbox[0]
@@ -350,9 +352,6 @@ def process_pdf_to_excel_and_html(pdf_path):
             elif pix.n == 1:  # Grayscale -> BGR
                 img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
             
-            # Распознаем текст с координатами
-            ocr_reader = get_reader()
-            result = ocr_reader.readtext(img)
             # Распознаем текст с координатами
             ocr_reader = get_reader()
             result = ocr_reader.readtext(img)
