@@ -5,7 +5,8 @@ import traceback
 import uuid
 import json
 import fitz  # PyMuPDF
-import easyocr
+# Ленивый импорт easyocr - загружается только при первом использовании
+# import easyocr  # Не импортируем здесь, чтобы не замедлять старт
 import pandas as pd
 import numpy as np
 import cv2
@@ -21,20 +22,25 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+# Логируем старт приложения (без импорта EasyOCR)
+logger.info("Flask app initialized (EasyOCR not imported yet)")
+
 # Разрешенные расширения
 ALLOWED_EXTENSIONS = {'pdf'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Lazy-инициализация EasyOCR, чтобы Render не ждал долгий старт при импорте модуля
+# Lazy-инициализация EasyOCR - импорт и создание reader только при первом использовании
 reader = None
 
 def get_reader():
     global reader
     if reader is None:
-        logger.info("Инициализация EasyOCR reader (lazy)...")
-        # можно отключить прогрессбар, чтобы не засорять логи Render
+        logger.info("Инициализация EasyOCR reader (lazy import + init)...")
+        # Ленивый импорт easyocr - загружается только здесь
+        import easyocr
+        # можно отключить прогрессбар, чтобы не засорять логи
         reader = easyocr.Reader(['en', 'ru'], verbose=False)
         logger.info("EasyOCR reader инициализирован.")
     return reader
