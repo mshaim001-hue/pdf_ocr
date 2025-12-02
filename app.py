@@ -47,6 +47,11 @@ def index():
 def favicon():
     return '', 204  # No content
 
+@app.route('/health')
+def health():
+    """Health check endpoint для Cloud Run (не инициализирует EasyOCR)"""
+    return jsonify({'status': 'healthy', 'service': 'pdf-ocr'}), 200
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
     pdf_paths = []

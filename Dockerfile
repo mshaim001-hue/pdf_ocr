@@ -28,8 +28,10 @@ COPY . /app
 # Cloud Run передаст порт через переменную окружения PORT
 ENV PORT=8080
 
-# Команда запуска — gunicorn с привязкой к $PORT
-CMD exec gunicorn --bind 0.0.0.0:${PORT} --workers 1 --threads 4 app:app
+# Команда запуска — gunicorn с увеличенным timeout для инициализации EasyOCR
+# --timeout 300: 5 минут на обработку запроса (включая первую инициализацию EasyOCR)
+# --graceful-timeout 30: время на graceful shutdown
+CMD exec gunicorn --bind 0.0.0.0:${PORT} --workers 1 --threads 4 --timeout 300 --graceful-timeout 30 app:app
 
 
 
