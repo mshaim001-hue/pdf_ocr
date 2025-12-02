@@ -27,10 +27,17 @@ ALLOWED_EXTENSIONS = {'pdf'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Инициализируем EasyOCR reader один раз при запуске
-print("Инициализация EasyOCR reader...")
-reader = easyocr.Reader(['en', 'ru'])
-print("EasyOCR reader готов!")
+# Lazy-инициализация EasyOCR, чтобы Render не ждал долгий старт при импорте модуля
+reader = None
+
+def get_reader():
+    global reader
+    if reader is None:
+        logger.info("Инициализация EasyOCR reader (lazy)...")
+        # можно отключить прогрессбар, чтобы не засорять логи Render
+        reader = easyocr.Reader(['en', 'ru'], verbose=False)
+        logger.info("EasyOCR reader инициализирован.")
+    return reader
 
 @app.route('/')
 def index():
@@ -344,7 +351,11 @@ def process_pdf_to_excel_and_html(pdf_path):
                 img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
             
             # Распознаем текст с координатами
-            result = reader.readtext(img)
+            ocr_reader = get_reader()
+            result = ocr_reader.readtext(img)
+            # Распознаем текст с координатами
+            ocr_reader = get_reader()
+            result = ocr_reader.readtext(img)
             
             for (bbox, text, prob) in result:
                 x0, y0 = bbox[0]
