@@ -14,7 +14,9 @@ from werkzeug.utils import secure_filename
 from collections import defaultdict
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # Максимальный размер файла 50MB
+# Cloud Run имеет лимит ~32MB на запрос, но мы увеличиваем лимит Flask для обработки батчей
+# Каждый батч будет содержать максимум 2-3 файла (~25MB)
+app.config['MAX_CONTENT_LENGTH'] = 30 * 1024 * 1024  # Максимальный размер запроса 30MB (в пределах лимита Cloud Run)
 app.config['UPLOAD_FOLDER'] = tempfile.gettempdir()
 
 # Включаем логирование ошибок
